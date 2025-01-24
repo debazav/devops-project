@@ -1,155 +1,91 @@
-# devops-project
-Perfeito! Aqui está um esqueleto para você começar localmente:
+Vamos configurar um **reporter** para seus testes, que ajuda a gerar relatórios claros sobre os resultados dos testes. O Jest já possui suporte integrado para gerar relatórios, e você pode usar extensões para personalizar os relatórios ou integrá-los com outras ferramentas.
+
+Aqui está como configurar o **Jest** com um reporter básico e, depois, como gerar um relatório mais completo usando a biblioteca **jest-html-reporter**.
 
 ---
 
-### **1. Estrutura do Projeto**
-Crie a seguinte estrutura de diretórios e arquivos:
+### **1. Usar o Reporter Padrão do Jest**
+Se você só precisa de uma visão básica, o Jest já possui suporte para exibir relatórios no terminal.
 
-```
-devops-project/
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml
-├── src/
-│   └── index.js
-├── Dockerfile
-├── package.json
-└── README.md
-```
-
----
-
-### **2. Código da API**
-No arquivo `src/index.js`, adicione uma API simples:
-
-```javascript
-const express = require("express");
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.json({ message: "Hello, DevOps!" });
-});
-
-app.listen(PORT, () => {
-  console.log(`API is running on http://localhost:${PORT}`);
-});
-```
-
----
-
-### **3. Arquivo `package.json`**
-Crie o arquivo `package.json` com as dependências necessárias:
+Adicione ao arquivo `package.json` uma configuração para exibir informações de cobertura de código:
 
 ```json
-{
-  "name": "devops-project",
-  "version": "1.0.0",
-  "description": "A simple API for DevOps practice",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2"
-  }
+"jest": {
+  "collectCoverage": true,
+  "coverageReporters": ["text", "lcov"]
 }
 ```
 
-Instale as dependências com o comando:
+Agora, quando você rodar `npm test`, verá informações detalhadas sobre a cobertura de código no terminal, e um arquivo chamado `coverage/lcov-report/index.html` será gerado para você abrir no navegador.
+
+---
+
+### **2. Configurar o jest-html-reporter**
+Se você quiser gerar um relatório visual em HTML, siga estas etapas:
+
+#### **2.1. Instalar a Biblioteca**
+Execute o comando para instalar o **jest-html-reporter**:
 
 ```bash
-npm install
+npm install --save-dev jest-html-reporter
+```
+
+#### **2.2. Configurar o Reporter**
+Crie um arquivo de configuração chamado `jest.config.js` na raiz do seu projeto:
+
+```javascript
+module.exports = {
+  collectCoverage: true,
+  coverageReporters: ["text", "lcov"],
+  reporters: [
+    "default",
+    [
+      "jest-html-reporter",
+      {
+        pageTitle: "Test Report",
+        outputPath: "./reports/test-report.html",
+        includeFailureMsg: true,
+        includeConsoleLog: true
+      }
+    ]
+  ]
+};
 ```
 
 ---
 
-### **4. Dockerfile**
-Adicione o `Dockerfile` para criar a imagem Docker:
+### **3. Executar os Testes**
+Rode o comando de teste como de costume:
 
-```dockerfile
-# Usar uma imagem base do Node.js
-FROM node:18
-
-# Definir diretório de trabalho
-WORKDIR /app
-
-# Copiar os arquivos do projeto
-COPY package*.json ./
-COPY src ./src
-
-# Instalar dependências
-RUN npm install
-
-# Expor a porta
-EXPOSE 3000
-
-# Comando para rodar a aplicação
-CMD ["npm", "start"]
+```bash
+npm test
 ```
+
+- Você verá um relatório gerado no diretório `./reports/` com o nome `test-report.html`.
+- Abra o arquivo HTML no navegador para visualizar o relatório.
 
 ---
 
-### **5. Pipeline no GitHub Actions**
-No arquivo `.github/workflows/ci-cd.yml`, configure um pipeline básico:
+### **4. Adicionar ao Pipeline do GitHub Actions**
+Atualize o arquivo `.github/workflows/ci-cd.yml` para armazenar o relatório como artefato:
 
 ```yaml
-name: CI/CD Pipeline
+    - name: Run tests and generate report
+      run: npm test
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
       with:
-        node-version: 18
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Run tests (placeholder)
-      run: echo "No tests yet!"
-
-    - name: Build Docker image
-      run: |
-        docker build -t devops-project .
+        name: test-report
+        path: reports/test-report.html
 ```
 
----
-
-### **6. Rodar Localmente**
-1. **Teste a API localmente**:
-   ```bash
-   node src/index.js
-   ```
-   Acesse: [http://localhost:3000](http://localhost:3000).
-
-2. **Build e run do Docker**:
-   ```bash
-   docker build -t devops-project .
-   docker run -p 3000:3000 devops-project
-   ```
-   Verifique novamente em [http://localhost:3000](http://localhost:3000).
+No GitHub Actions, o relatório estará disponível para download como um artefato.
 
 ---
 
-### **7. Próximos Passos**
-1. **Adicione testes** para garantir a qualidade.
-2. Configure o deploy real (por exemplo, para AWS ECS ou Heroku).
-3. Experimente com diferentes ferramentas de CI/CD, como Jenkins ou GitLab CI.
+### **Próximos Passos**
+1. Integre outros reporters, como JSON ou JUnit, caso precise enviar relatórios para ferramentas externas.
+2. Configure o Jest para rodar com parâmetros personalizados, como `--watch` para desenvolvimento contínuo.
 
-Se precisar de ajuda para expandir ou configurar algo, é só falar! 🚀
+Se precisar de ajuda com integrações mais avançadas, como cobertura de código ou integração com ferramentas específicas, é só avisar! 🚀
