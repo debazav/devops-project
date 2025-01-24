@@ -24,8 +24,14 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run tests (unit)
+    - name: Run tests and generate report
       run: npm test
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: reports/test-report.html
 
     - name: Build Docker image
       run: |
