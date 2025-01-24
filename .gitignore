@@ -15,6 +15,7 @@ yarn.lock
 dist/
 build/
 coverage/
+reports/
 
 # IDE/Editor specific
 .idea/
